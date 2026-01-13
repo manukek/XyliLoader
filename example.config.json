@@ -1,0 +1,14 @@
+{
+  "mongodb": {
+    "uri": "...",
+    "database": "..."
+  },
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0"
+  },
+  "upload": {
+    "maxSize": 104857600,
+    "baseURL": "https://example.com"
+  }
+}
