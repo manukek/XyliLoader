@@ -28,6 +28,44 @@ dropZone.addEventListener('drop', (e) => {
     }
 });
 
+// Paste image anywhere on page => upload
+document.addEventListener('paste', (e) => {
+    const dt = e.clipboardData;
+    if (!dt) return;
+
+    let file = null;
+
+    if (dt.items && dt.items.length) {
+        for (const item of dt.items) {
+            if (item.kind === 'file' && item.type?.startsWith('image/')) {
+                file = item.getAsFile();
+                break;
+            }
+        }
+    }
+
+    if (!file && dt.files && dt.files.length) {
+        for (const f of dt.files) {
+            if (f.type?.startsWith('image/')) {
+                file = f;
+                break;
+            }
+        }
+    }
+
+    if (!file) return;
+
+    e.preventDefault();
+
+    const ext = (file.type.split('/')[1] || 'png').toLowerCase();
+    const safeName = `pasted-${Date.now()}.${ext}`;
+    selectedFile = new File([file], safeName, { type: file.type });
+
+    updateDropZoneText();
+
+    if (!uploadBtn.disabled) uploadBtn.click();
+});
+
 fileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
         selectedFile = e.target.files[0];
@@ -107,7 +145,8 @@ function loadHistory() {
     const history = JSON.parse(localStorage.getItem('uploadHistory') || '[]');
 
     if (history.length === 0) {
-        historyBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #555; padding: 40px;">Нет загруженных файлов</td></tr>';
+        historyBody.innerHTML =
+            '<tr><td colspan="4" style="text-align: center; color: #555; padding: 40px;">Нет загруженных файлов</td></tr>';
         return;
     }
 
@@ -151,9 +190,7 @@ async function deleteFile(index, deletionUrl) {
     if (!confirm('Удалить файл?')) return;
 
     try {
-        const response = await fetch(deletionUrl, {
-            method: 'POST'
-        });
+        const response = await fetch(deletionUrl, { method: 'POST' });
 
         if (response.ok) {
             let history = JSON.parse(localStorage.getItem('uploadHistory') || '[]');
@@ -170,9 +207,7 @@ async function deleteFile(index, deletionUrl) {
 }
 
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast('Скопировано');
-    });
+    navigator.clipboard.writeText(text).then(() => showToast('Скопировано'));
 }
 
 function showToast(message) {
@@ -180,10 +215,7 @@ function showToast(message) {
     toastSpan.textContent = message;
     toast.classList.add('show');
 
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 2000);
+    setTimeout(() => toast.classList.remove('show'), 2000);
 }
-
 
 loadHistory();
