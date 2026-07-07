@@ -8,7 +8,7 @@
     "host": "0.0.0.0"
   },
   "upload": {
-    "maxSize": 104857600,
+    "maxSize": 314572800,
     "baseURL": "https://example.com"
   }
 }
