@@ -6,6 +6,20 @@ const toast = document.getElementById('toast');
 
 let selectedFile = null;
 
+function getCSRFToken() {
+    const match = document.cookie.match(/(?:^|; )csrf_token=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+}
+
+function csrfHeaders() {
+    const headers = {};
+    const token = getCSRFToken();
+    if (token) {
+        headers['X-CSRF-Token'] = token;
+    }
+    return headers;
+}
+
 dropZone.addEventListener('click', () => fileInput.click());
 
 dropZone.addEventListener('dragover', (e) => {
@@ -100,6 +114,7 @@ uploadBtn.addEventListener('click', async () => {
     try {
         const response = await fetch('/upload', {
             method: 'POST',
+            headers: csrfHeaders(),
             body: formData
         });
 
@@ -190,7 +205,10 @@ async function deleteFile(index, deletionUrl) {
     if (!confirm('Удалить файл?')) return;
 
     try {
-        const response = await fetch(deletionUrl, { method: 'POST' });
+        const response = await fetch(deletionUrl, {
+            method: 'POST',
+            headers: csrfHeaders()
+        });
 
         if (response.ok) {
             let history = JSON.parse(localStorage.getItem('uploadHistory') || '[]');

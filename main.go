@@ -136,6 +136,7 @@ func main() {
 				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 				return
 			}
+			setCSRFCookie(w)
 			tmpl := template.Must(template.ParseFiles("templates/index.html"))
 			err := tmpl.Execute(w, nil)
 			if err != nil {
@@ -270,6 +271,10 @@ func main() {
 			return
 		}
 
+		if !requireCSRF(w, r) {
+			return
+		}
+
 		err := r.ParseMultipartForm(config.Upload.MaxSize)
 		if err != nil {
 			jsonError(w, "Bad request", http.StatusBadRequest)
@@ -324,8 +329,12 @@ func main() {
 	})
 
 	http.HandleFunc("/delete/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost && r.Method != http.MethodGet {
+		if r.Method != http.MethodPost {
 			jsonError(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		if !requireCSRF(w, r) {
 			return
 		}
 
